@@ -1,0 +1,34 @@
+device: cuda
+target alone : 200 tokens in 6.95s = 28.8 tok/s
+with draft   : 200 tokens in 8.72s = 22.9 tok/s
+speedup      : 0.80x
+same output?  False
+peak GPU memory: 17.62 GB
+
+--- generated text ---
+Certainly! Below is a Python function that checks whether a given string is a palindrome. A palindrome is a word, phrase, number, or other sequences of characters that reads the same backward as forward (ignoring spaces, punctuation, and capitalization).
+
+```python
+def is_palindrome(s):
+    """
+    Check if the input string s is a palindrome.
+
+    Args:
+    s (str): The string to check.
+
+    Returns:
+    bool: True if s is a palindrome, False otherwise.
+    """
+    # Normalize the string by removing non-alphanumeric characters and converting to lower case
+    normalized_str = ''.join(char.lower() for char in s if char.isalnum())
+    
+    # Check if the normalized string is equal to its reverse
+    return normalized_str == normalized_str[::-1]
+```
+
+### Explanation:
+
+1. **Function Definition**: The function `is_palindrome` takes one argument `s`, which is the string to be checked.
+
+2. **Normalization**:
+

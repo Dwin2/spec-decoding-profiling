@@ -1,0 +1,21 @@
+
+--- draft ---
+eager + DynamicCache      :  20.68 ms
+eager + StaticCache       :  25.05 ms
+CUDA graphs + StaticCache :   3.59 ms   (compile can take a minute)
+
+--- target ---
+eager + DynamicCache      :  34.48 ms
+eager + StaticCache       :  35.72 ms
+CUDA graphs + StaticCache :  32.47 ms   (compile can take a minute)
+
+=== Summary ===
+draft/target cost, eager      : 0.60
+draft speedup from CUDA graphs: 5.8x   (20.68 -> 3.59 ms)
+target speedup from CUDA graphs: 1.1x   (34.48 -> 32.47 ms)
+draft/target cost, CUDA graphs: 0.11
+
+Estimated SD speedup if both models ran with CUDA graphs (verify pass ~ 1 target pass):
+  acceptance 0.6: best k = 3, speedup ~ 1.63x
+  acceptance 0.7: best k = 4, speedup ~ 1.92x
+  acceptance 0.8: best k = 5, speedup ~ 2.38x

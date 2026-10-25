@@ -1,0 +1,72 @@
+device: cuda
+
+=== TARGET (Qwen2.5-7B): 28 layers, hidden size 3584, vocab 152064 ===
+one decode step: 34.52 ms
+  embedding done        at   0.13 ms (  0.4%)
+  layer  0 done        at   2.07 ms (  6.0%)
+  layer  1 done        at   3.19 ms (  9.2%)
+  layer  2 done        at   4.31 ms ( 12.5%)
+  layer  3 done        at   5.43 ms ( 15.7%)
+  layer  4 done        at   6.55 ms ( 19.0%)
+  layer  5 done        at   7.67 ms ( 22.2%)
+  layer  6 done        at   8.78 ms ( 25.4%)
+  layer  7 done        at   9.90 ms ( 28.7%)  <- ~1/4 of layers (low)
+  layer  8 done        at  11.02 ms ( 31.9%)
+  layer  9 done        at  12.14 ms ( 35.2%)
+  layer 10 done        at  13.25 ms ( 38.4%)
+  layer 11 done        at  14.37 ms ( 41.6%)
+  layer 12 done        at  15.49 ms ( 44.9%)
+  layer 13 done        at  16.61 ms ( 48.1%)
+  layer 14 done        at  17.73 ms ( 51.3%)  <- middle layer
+  layer 15 done        at  18.84 ms ( 54.6%)
+  layer 16 done        at  19.96 ms ( 57.8%)
+  layer 17 done        at  21.08 ms ( 61.1%)
+  layer 18 done        at  22.20 ms ( 64.3%)
+  layer 19 done        at  23.32 ms ( 67.5%)
+  layer 20 done        at  24.44 ms ( 70.8%)
+  layer 21 done        at  25.56 ms ( 74.0%)  <- ~3/4 of layers (high)
+  layer 22 done        at  26.67 ms ( 77.3%)
+  layer 23 done        at  27.79 ms ( 80.5%)
+  layer 24 done        at  28.90 ms ( 83.7%)
+  layer 25 done        at  30.02 ms ( 87.0%)
+  layer 26 done        at  31.14 ms ( 90.2%)
+  layer 27 done        at  32.25 ms ( 93.4%)
+  ---
+  all 28 layers      :  32.13 ms ( 93.1%), 1.147 ms per layer
+  final norm + lm_head:   2.27 ms (  6.6%)
+
+=== DRAFT  (Qwen2.5-0.5B): 24 layers, hidden size 896, vocab 151936 ===
+one decode step: 22.47 ms
+  embedding done        at   0.11 ms (  0.5%)
+  layer  0 done        at   1.28 ms (  5.7%)
+  layer  1 done        at   2.16 ms (  9.6%)
+  layer  2 done        at   3.06 ms ( 13.6%)
+  layer  3 done        at   3.94 ms ( 17.6%)
+  layer  4 done        at   4.83 ms ( 21.5%)
+  layer  5 done        at   5.72 ms ( 25.5%)
+  layer  6 done        at   6.61 ms ( 29.4%)  <- ~1/4 of layers (low)
+  layer  7 done        at   7.50 ms ( 33.4%)
+  layer  8 done        at   8.38 ms ( 37.3%)
+  layer  9 done        at   9.26 ms ( 41.2%)
+  layer 10 done        at  10.15 ms ( 45.2%)
+  layer 11 done        at  11.04 ms ( 49.1%)
+  layer 12 done        at  11.92 ms ( 53.1%)  <- middle layer
+  layer 13 done        at  12.81 ms ( 57.0%)
+  layer 14 done        at  13.68 ms ( 60.9%)
+  layer 15 done        at  14.57 ms ( 64.8%)
+  layer 16 done        at  15.45 ms ( 68.8%)
+  layer 17 done        at  16.35 ms ( 72.7%)
+  layer 18 done        at  17.24 ms ( 76.7%)  <- ~3/4 of layers (high)
+  layer 19 done        at  18.14 ms ( 80.7%)
+  layer 20 done        at  19.03 ms ( 84.7%)
+  layer 21 done        at  19.92 ms ( 88.6%)
+  layer 22 done        at  20.79 ms ( 92.5%)
+  layer 23 done        at  21.67 ms ( 96.4%)
+  ---
+  all 24 layers      :  21.56 ms ( 95.9%), 0.898 ms per layer
+  final norm + lm_head:   0.80 ms (  3.6%)
+
+=== Comparison ===
+time per layer : target 1.147 ms vs draft 0.898 ms (draft/target = 0.78)
+lm_head        : target 2.27 ms vs draft 0.80 ms
+whole step     : target 34.52 ms vs draft 22.47 ms (draft/target = 0.65)

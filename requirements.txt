@@ -1,0 +1,4 @@
+torch>=2.6
+transformers==5.20.0
+accelerate
+matplotlib  # only for scripts/plot_cuda_graphs.py

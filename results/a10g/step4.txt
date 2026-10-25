@@ -1,0 +1,20 @@
+device: cuda
+target config: 28 layers, 4 KV heads, head dim 128, hidden 3584, vocab 152064
+
+reference: one target decode step = 34.41 ms
+
+operation                                                        time  % of target step  note
+--------------------------------------------------------------------------------------------------------------
+(a) launch one tiny kernel (no waiting)                         9.5 us            0.03%  x ~550 kernels per decode step
+(a) tiny kernel + .item() sync                                 34.2 us            0.10%  HF does several of these per round
+(b) HF: crop 5 rejected tokens from KV cache                  228.9 us            0.67%  
+(b) EAGLE: copy 5 accepted tokens' K/V                         43.9 us            0.13%  280 KB moved
+(c) hidden states, 1 token: GPU copy                           19.2 us            0.06%  7.0 KB
+(c) hidden states, 1 token: GPU->CPU                           21.9 us            0.06%  7.0 KB
+(c) hidden states, 60-token tree: GPU copy                     18.8 us            0.05%  420.0 KB
+(c) hidden states, 60-token tree: GPU->CPU                     78.4 us            0.23%  420.0 KB
+(c) hidden states, 60-token tree, EAGLE-3 (3 layers): GPU copy     18.0 us            0.05%  1260.0 KB
+(c) hidden states, 60-token tree, EAGLE-3 (3 layers): GPU->CPU    176.6 us            0.51%  1260.0 KB
+(d) draft logits, k=4: fp16->fp32 copy                         19.4 us            0.06%  2.4 MB in fp32
+(d) draft logits, k=10: fp16->fp32 copy                        35.6 us            0.10%  6.1 MB in fp32
+(e) EAGLE tree mask: .tolist() + Python loop + copy back      208.6 us            0.61%  60 nodes

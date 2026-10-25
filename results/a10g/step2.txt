@@ -1,0 +1,31 @@
+
+=== Part A: time per forward pass (median, ms) ===
+draft  pass, 1 token :  21.93 ms
+target pass, 1 token :  34.42 ms
+target pass, 5 tokens:  36.27 ms
+draft/target cost ratio      : 0.64
+5-token / 1-token target pass: 1.05x
+
+saved trace.json  (open it at https://ui.perfetto.dev)
+
+=== Part B: one generation of 50 tokens (profiler adds overhead; trust % not ms) ===
+total time            :   5155.5 ms
+rounds                : 15   (TARGET calls 16 incl. 1 prefill)
+draft passes per round: 14.8
+tokens per round      : 3.33
+time inside TARGET    :   8.9%
+time inside DRAFT     :  86.8%
+time outside both     :   4.3%
+GPU busy overall      :  15.8%   (GPU idle  84.2%)
+GPU busy during TARGET:  62.0%   (approx.)
+GPU busy during DRAFT :  11.4%   (approx.)
+GPU kernels/copies    : 134344  (~564 per forward pass)
+
+=== Part C: speedup vs number of draft guesses per round ===
+target alone          :  28.2 tok/s
+HF default (adaptive) :  17.2 tok/s  -> 0.61x
+fixed k = 1           :  24.5 tok/s  -> 0.87x
+fixed k = 2           :  26.7 tok/s  -> 0.95x
+fixed k = 3           :  26.9 tok/s  -> 0.95x
+fixed k = 4           :  25.6 tok/s  -> 0.91x
+fixed k = 6           :  25.9 tok/s  -> 0.92x
