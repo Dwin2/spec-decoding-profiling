@@ -125,7 +125,7 @@ def spec_decode(k, n_new, phases=False):
         if phases: sync(); t1 = time.perf_counter()
 
         # 2) target verifies [cur, d1..dk] in ONE pass -> its own greedy token at each position
-        pred = t_pass(v)                                          # [1, k+1]
+        pred = t_pass(v).clone()      # [1, k+1]; clone: the next graph run reuses this output's memory
         if phases: sync(); t2 = time.perf_counter()
 
         # 3) accept the longest matching prefix, then take the target's next token
