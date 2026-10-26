@@ -27,9 +27,13 @@ Nsight Systems timeline (optional, short run):
 """
 import sys, time, statistics, threading, torch
 import transformers.masking_utils as mu
-# Always build the attention mask explicitly. HF's shortcut that skips it reads a GPU value on the
-# CPU (a sync), which is not allowed inside CUDA-graph capture. Results are identical.
-mu._ignore_causal_mask_sdpa = lambda *a, **k: False
+# For multi-token passes (verify), build the attention mask explicitly: HF's shortcut that skips it
+# reads a GPU value on the CPU (a sync), which is not allowed inside CUDA-graph capture. 1-token
+# passes (draft) keep HF's default path, which has no sync. Results are identical either way.
+_orig_skip = mu._ignore_causal_mask_sdpa
+def _skip_mask(padding_mask, q_length, *a, **k):
+    return False if q_length > 1 else _orig_skip(padding_mask, q_length, *a, **k)
+mu._ignore_causal_mask_sdpa = _skip_mask
 from transformers import AutoModelForCausalLM, AutoTokenizer, StaticCache
 
 dev = "cuda"
@@ -92,9 +96,11 @@ def verify_work(k):
         t_out[:, :k + 1].copy_(p)
     return fn
 
-def capture(fn):
+def capture(fn, s):
     # Standard recipe: warm up on a side stream, then record. Each graph gets its own memory pool.
-    s = torch.cuda.Stream()
+    # Each MODEL is captured on its own stream `s`: cuBLAS keeps one scratch workspace per stream and
+    # bakes its address into the graph, so graphs captured on the same stream share that workspace
+    # and corrupt each other when they run at the same time.
     s.wait_stream(torch.cuda.current_stream())
     with torch.cuda.stream(s):
         for _ in range(3):
@@ -102,14 +108,15 @@ def capture(fn):
     torch.cuda.current_stream().wait_stream(s)
     torch.cuda.synchronize()
     g = torch.cuda.CUDAGraph()
-    with torch.cuda.graph(g):
+    with torch.cuda.graph(g, stream=s):
         fn()
     torch.cuda.synchronize()
     return g
 
 print("capturing CUDA graphs ...")
-g_draft = {k: capture(draft_work(k)) for k in KS}
-g_ver = {k: capture(verify_work(k)) for k in KS}
+cap_d, cap_t = torch.cuda.Stream(), torch.cuda.Stream()
+g_draft = {k: capture(draft_work(k), cap_d) for k in KS}
+g_ver = {k: capture(verify_work(k), cap_t) for k in KS}
 
 lo, hi = torch.cuda.Stream.priority_range()                     # (lowest, highest) priority values
 s_d, s_t = torch.cuda.Stream(), torch.cuda.Stream()             # normal priority
@@ -175,8 +182,11 @@ k = 4
 measure([(s_d, g_draft[k])], 1); ref_d = d_out[:, :k].clone()
 measure([(s_t, g_ver[k])], 1);   ref_t = t_out[:, :k + 1].clone()
 measure([(s_t, g_ver[k]), (s_d, g_draft[k])], 3)
-same = torch.equal(ref_d, d_out[:, :k]) and torch.equal(ref_t, t_out[:, :k + 1])
-print(f"outputs identical when running together: {same}")
+same_d = torch.equal(ref_d, d_out[:, :k]); same_t = torch.equal(ref_t, t_out[:, :k + 1])
+print(f"outputs identical when running together: draft {same_d}, target {same_t}")
+if not (same_d and same_t):
+    print("  WARNING: running together changed the results -> the graphs share memory somewhere;"
+          " timings below are suspect")
 
 
 # ---------------------------------------------------------------------------

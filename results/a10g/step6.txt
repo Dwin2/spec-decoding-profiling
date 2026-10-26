@@ -1,0 +1,21 @@
+
+=== Part A: throughput, both models on CUDA graphs (200 new tokens, greedy) ===
+(compiling: first k can take a few minutes)
+target alone (graphed)       :  31.2 tok/s
+SD k = 1:  47.3 tok/s -> 1.51x | 1.90 tok/round | 90.5% drafts accepted | same output
+SD k = 2:  62.8 tok/s -> 2.01x | 2.74 tok/round | 86.3% drafts accepted | same output
+SD k = 3:  74.5 tok/s -> 2.39x | 3.51 tok/round | 83.6% drafts accepted | same output
+SD k = 4:  84.5 tok/s -> 2.71x | 4.26 tok/round | 81.4% drafts accepted | same output
+SD k = 5:  84.6 tok/s -> 2.71x | 4.55 tok/round | 70.9% drafts accepted | same output
+SD k = 6:  89.4 tok/s -> 2.86x | 5.13 tok/round | 68.8% drafts accepted | same output
+
+(for reference, step2 Part C, eager HF on this GPU: target alone 28.2 tok/s, best SD 0.95x)
+
+=== Part B: one round at best k = 6 (median over 39 rounds; extra syncs added) ===
+draft  (6 passes)     :  22.12 ms  (36.5%)   = 3.69 ms per draft pass
+verify (1 target pass):  33.92 ms  (55.9%)
+accept + rollback     :   4.61 ms  ( 7.6%)
+round total           :  60.65 ms  for 5.13 tokens
+
+serial SD (this loop)            :  84.6 tok/s  -> 2.71x
+if draft fully hidden under verify: 133.1 tok/s  -> 4.26x  (upper bound, same acceptance; real overlap must break the round dependency and avoid interference)

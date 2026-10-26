@@ -17,7 +17,7 @@ a custom SD loop with both models on CUDA graphs, and the two models running con
 | `step3.py` | Per-layer timeline of one decode pass, for each model | [`results/a10g/step3.txt`](results/a10g/step3.txt) |
 | `step4.py` | Cost of every draft↔target handoff (KV rollback, hidden states, logits, tree mask) | [`results/a10g/step4.txt`](results/a10g/step4.txt) |
 | `step5.py` | Is the draft GPU-bound or overhead-bound? (eager vs StaticCache vs CUDA graphs) | [`results/a10g/step5.txt`](results/a10g/step5.txt) |
-| `step6.py` | Custom SD loop with both models on CUDA graphs: real speedup vs *k*, per-round time split, overlap upper bound | *not yet run* |
+| `step6.py` | Custom SD loop with both models on CUDA graphs: real speedup vs *k*, per-round time split, overlap upper bound | [`results/a10g/step6.txt`](results/a10g/step6.txt) |
 | `step7.py` | Draft and target verify running **concurrently** on separate streams: slowdown of each, makespan vs serial, stream priorities, SM clock/power | *not yet run* |
 
 ## Findings so far
@@ -31,8 +31,9 @@ a custom SD loop with both models on CUDA graphs, and the two models running con
 3. **Handoffs are cheap.** Every draft↔target handoff measured in step4 costs < 1% of a
    target decode step.
 4. **Verification is nearly free in width:** a 5-token target pass costs 1.05x a 1-token pass.
-5. **Estimate:** with both models graphed and the acceptance rate implied by step2
-   (~0.75 per token), SD should reach ~2.1x at *k* = 4–5. `step6.py` measures this directly.
+5. **With both models on CUDA graphs, SD works:** 2.71x at *k* = 4 (81% of drafts accepted) and
+   2.86x at *k* = 6 over the graphed target alone (31.2 tok/s), with output identical to plain
+   greedy decoding. A round at *k* = 6: draft 36%, verify 56%, accept + rollback 8%.
 
 ![CUDA graphs: draft vs target](figures/draft_vs_target_cuda_graphs.png)
 
