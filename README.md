@@ -1,9 +1,9 @@
 # Profiling speculative decoding on a single GPU
 
 Where does the time go when a small draft model and a large target model run speculative
-decoding (SD) on the **same GPU**? These six scripts measure it step by step, from an
+decoding (SD) on the **same GPU**? These scripts measure it step by step, from an
 end-to-end baseline down to per-layer timing, handoff costs, framework overhead, and finally
-a custom SD loop with both models on CUDA graphs.
+a custom SD loop with both models on CUDA graphs, and the two models running concurrently.
 
 **Setup:** NVIDIA A10G (24 GB, AWS g5.xlarge) · target `Qwen/Qwen2.5-7B-Instruct` · draft
 `Qwen/Qwen2.5-0.5B-Instruct` · fp16 · batch 1 · greedy · transformers 5.20.
@@ -18,6 +18,7 @@ a custom SD loop with both models on CUDA graphs.
 | `step4.py` | Cost of every draft↔target handoff (KV rollback, hidden states, logits, tree mask) | [`results/a10g/step4.txt`](results/a10g/step4.txt) |
 | `step5.py` | Is the draft GPU-bound or overhead-bound? (eager vs StaticCache vs CUDA graphs) | [`results/a10g/step5.txt`](results/a10g/step5.txt) |
 | `step6.py` | Custom SD loop with both models on CUDA graphs: real speedup vs *k*, per-round time split, overlap upper bound | *not yet run* |
+| `step7.py` | Draft and target verify running **concurrently** on separate streams: slowdown of each, makespan vs serial, stream priorities, SM clock/power | *not yet run* |
 
 ## Findings so far
 
@@ -39,8 +40,8 @@ a custom SD loop with both models on CUDA graphs.
 
 ```bash
 python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-python step1.py 2>&1 | tee step1.txt     # likewise for step2 ... step6
+pip install -r requirements.txt   # + nvidia-ml-py for step7 Part C
+python step1.py 2>&1 | tee step1.txt     # likewise for step2 ... step7
 ```
 
 Needs a CUDA GPU with ≥ 24 GB. On a 16 GB-RAM machine the 7B model is loaded straight to the
