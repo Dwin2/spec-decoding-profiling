@@ -1,0 +1,21 @@
+capturing CUDA graphs ...
+outputs identical when running together: draft True, target True
+
+=== Part A: draft (k passes) and target verify (k+1 tokens), alone vs together ===
+x = slowdown when running together;  ideal = max(alone times), i.e. perfect overlap
+ same priority k=1 | draft   4.56 ->  15.87 ms (3.48x) | target  33.67 ->  35.95 ms (1.07x) | serial  38.23, together  35.95, ideal  33.67 ms | overlap gets  50.1% of the ideal saving
+ same priority k=2 | draft   9.09 ->  31.70 ms (3.49x) | target  33.76 ->  38.37 ms (1.14x) | serial  42.85, together  38.37, ideal  33.76 ms | overlap gets  49.4% of the ideal saving
+ same priority k=3 | draft  13.63 ->  42.26 ms (3.10x) | target  33.90 ->  39.03 ms (1.15x) | serial  47.53, together  42.26, ideal  33.90 ms | overlap gets  38.7% of the ideal saving
+ same priority k=4 | draft  18.16 ->  46.80 ms (2.58x) | target  33.91 ->  39.07 ms (1.15x) | serial  52.08, together  46.80, ideal  33.91 ms | overlap gets  29.0% of the ideal saving
+ same priority k=6 | draft  27.22 ->  56.05 ms (2.06x) | target  34.03 ->  39.22 ms (1.15x) | serial  61.25, together  56.05, ideal  34.03 ms | overlap gets  19.1% of the ideal saving
+
+=== Part B: k = 4 with CUDA stream priorities ===
+ same priority k=4 | draft  18.17 ->  46.83 ms (2.58x) | target  33.91 ->  39.11 ms (1.15x) | serial  52.08, together  46.83, ideal  33.91 ms | overlap gets  28.9% of the ideal saving
+  target first k=4 | draft  18.16 ->  46.81 ms (2.58x) | target  33.91 ->  39.08 ms (1.15x) | serial  52.08, together  46.81, ideal  33.91 ms | overlap gets  29.0% of the ideal saving
+   draft first k=4 | draft  18.16 ->  46.80 ms (2.58x) | target  33.91 ->  39.07 ms (1.15x) | serial  52.07, together  46.80, ideal  33.91 ms | overlap gets  29.0% of the ideal saving
+
+=== Part C: SM clock and power, k = 4 (sustained ~2 s each) ===
+power limit: 300 W
+  draft alone: SM clock  1710 MHz, power 138.5 W
+ target alone: SM clock  1710 MHz, power 176.5 W
+     together: SM clock  1710 MHz, power 178.3 W

@@ -23,7 +23,7 @@ Prints
 
 Nsight Systems timeline (optional, short run):
   nsys profile -t cuda,nvtx --cuda-graph-trace=node --capture-range=cudaProfilerApi \
-       -o step7_k4 python step7.py --nsys
+       -o step7_k4 python src/step7.py --nsys
 """
 import sys, time, statistics, threading, torch
 import transformers.masking_utils as mu

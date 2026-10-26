@@ -6,3 +6,4 @@ trace.json
 *.nsys-rep
 *.qdrep
 *.pem
+*.sqlite
